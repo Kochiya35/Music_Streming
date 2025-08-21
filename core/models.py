@@ -23,3 +23,46 @@ class Track(models.Model):
         ordering = ["-created_at"]
     def __str__(self):
         return f"{self.title} - {self.artist}"
+
+class Favorite(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="favorites")
+    track = models.ForeignKey(Track, on_delete=models.CASCADE, related_name="favorited_by")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ("user", "track")
+        indexes = [models.Index(fields=["user", "track"])]
+
+class PlayHistory(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="play_histories")
+    track = models.ForeignKey(Track, on_delete=models.CASCADE, related_name="play_histories")
+    played_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-played_at"]
+        indexes = [models.Index(fields=["user", "played_at"])]
+
+class Playlist(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="playlists")
+    name = models.CharField(max_length=100)
+    is_public = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        unique_together = ("user", "name")
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return f"{self.name} ({self.user})"
+
+class PlaylistTrack(models.Model):
+    playlist = models.ForeignKey(Playlist, on_delete=models.CASCADE, related_name="items")
+    track = models.ForeignKey(Track, on_delete=models.CASCADE, related_name="in_playlists")
+    order = models.PositiveIntegerField(default=0)
+    added_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ("playlist", "track")
+        ordering = ["order", "added_at"]

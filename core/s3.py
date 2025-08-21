@@ -16,3 +16,12 @@ def create_presigned_put_url(key: str, content_type: str, expires: int):
         ExpiresIn=expires,
         HttpMethod="PUT",
     )
+
+def create_presigned_get_url(key: str, expires: int):
+    s3 = get_s3_client()
+    return s3.generate_presigned_url(
+        ClientMethod="get_object",
+        Params={"Bucket": os.getenv("AWS_S3_BUCKET"), "Key": key},
+        ExpiresIn=expires,
+        HttpMethod="GET",
+    )

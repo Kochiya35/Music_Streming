@@ -1,12 +1,12 @@
 from django.contrib.auth.password_validation import validate_password
 from rest_framework import serializers
-from .models import User, Track
+from .models import Favorite, PlayHistory, Playlist, PlaylistTrack, Track, User
 
 class RegisterSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True)
     class Meta:
         model = User
-        fields = ("username","email","password","nickname")
+        fields = ("username", "email", "password", "nickname")
     def validate_password(self, value):
         validate_password(value); return value
     def create(self, validated_data):
@@ -16,10 +16,49 @@ class RegisterSerializer(serializers.ModelSerializer):
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ("id","username","email","nickname","avatar")
+        fields = ("id", "username", "email", "nickname", "avatar")
 
 class TrackSerializer(serializers.ModelSerializer):
     class Meta:
         model = Track
-        fields = ("id","title","artist","genre","thumbnail_url","audio_s3_key","duration_sec","is_published","created_at","updated_at")
+        fields = (
+            "id","title","artist","genre","thumbnail_url","audio_s3_key",
+            "duration_sec","is_published","created_at","updated_at"
+        )
         read_only_fields = ("id","created_at","updated_at")
+
+class FavoriteSerializer(serializers.ModelSerializer):
+    track = TrackSerializer(read_only=True)
+    track_id = serializers.UUIDField(write_only=True)
+    class Meta:
+        model = Favorite
+        fields = ("id", "track", "track_id", "created_at")
+        read_only_fields = ("id", "created_at")
+    def create(self, validated_data):
+        track_id = validated_data.pop("track_id")
+        track = Track.objects.get(pk=track_id)
+        return Favorite.objects.create(user=self.context["request"].user, track=track)
+
+class PlayHistorySerializer(serializers.ModelSerializer):
+    track = TrackSerializer(read_only=True)
+    class Meta:
+        model = PlayHistory
+        fields = ("id", "track", "played_at")
+
+class PlaylistItemSerializer(serializers.ModelSerializer):
+    track = TrackSerializer(read_only=True)
+    track_id = serializers.UUIDField(write_only=True)
+    class Meta:
+        model = PlaylistTrack
+        fields = ("id", "track", "track_id", "order", "added_at")
+        read_only_fields = ("id", "added_at")
+
+class PlaylistSerializer(serializers.ModelSerializer):
+    tracks = serializers.SerializerMethodField()
+    class Meta:
+        model = Playlist
+        fields = ("id", "name", "is_public", "created_at", "updated_at", "tracks")
+        read_only_fields = ("id", "created_at", "updated_at")
+    def get_tracks(self, obj):
+        items = obj.items.select_related("track").all()
+        return TrackSerializer([it.track for it in items], many=True).data
