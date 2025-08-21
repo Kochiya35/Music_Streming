@@ -67,13 +67,6 @@ WSGI_APPLICATION = "config.wsgi.application"
 
 # -------------------------------------------------------------------
 # 데이터베이스 (dev=SQLite / prod=MySQL)
-#   .env 예시:
-#   DB_ENGINE=mysql
-#   MYSQL_DATABASE=music
-#   MYSQL_USER=admin
-#   MYSQL_PASSWORD=xxxxx
-#   MYSQL_HOST=your-rds.amazonaws.com
-#   MYSQL_PORT=3306
 # -------------------------------------------------------------------
 if os.getenv("DB_ENGINE", "sqlite").lower() == "mysql":
     DATABASES = {
@@ -120,10 +113,10 @@ USE_TZ = True
 # 정적/미디어
 # -------------------------------------------------------------------
 STATIC_URL = "static/"
-STATIC_ROOT = BASE_DIR / "staticfiles"  # 배포 시 collectstatic 용
+STATIC_ROOT = BASE_DIR / "staticfiles"
 
 MEDIA_URL = "/media/"
-MEDIA_ROOT = BASE_DIR / "media"         # 아바타 등 업로드 파일 저장 경로
+MEDIA_ROOT = BASE_DIR / "media"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
@@ -163,22 +156,11 @@ AWS_PRESIGNED_EXPIRE_SECONDS = int(os.getenv("AWS_PRESIGNED_EXPIRE_SECONDS", "60
 AWS_S3_AUDIO_PREFIX = os.getenv("AWS_S3_AUDIO_PREFIX", "audio/")
 
 # -------------------------------------------------------------------
-# 이메일(개발: 콘솔 출력 / 배포: SMTP로 전환)
+# 이메일 (개발/배포 설정)
 # -------------------------------------------------------------------
-EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"  # 개발용
+EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 DEFAULT_FROM_EMAIL = "no-reply@example.com"
-
-# 이메일 인증 링크에 사용할 베이스 URL
 SITE_URL = os.getenv("SITE_URL", "http://127.0.0.1:8001")
-
-# 배포 예시 (주석 해제하여 사용)
-# EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
-# EMAIL_HOST = "smtp.gmail.com"
-# EMAIL_PORT = 587
-# EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER")
-# EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD")
-# EMAIL_USE_TLS = True
-# DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 
 # -------------------------------------------------------------------
 # (배포 시 권장) CSRF / CORS 예시
