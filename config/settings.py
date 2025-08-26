@@ -50,7 +50,7 @@ ROOT_URLCONF = "config.urls"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [],
+        "DIRS": [BASE_DIR / "templates"],  # templates 폴더 지정
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [

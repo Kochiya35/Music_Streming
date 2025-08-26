@@ -1,15 +1,58 @@
-# Python
+# ------------------------
+# Python / Django
+# ------------------------
 __pycache__/
 *.py[cod]
 *.egg-info/
 *.log
 
-# Env
+# Django stuff
+*.pot
+*.pyc
+*.pyo
+*.pyd
+*.sqlite3
+*.db
+db.sqlite3
+media/
+staticfiles/
+
+# Migrations (keep __init__.py only)
+*/migrations/*
+!*/migrations/__init__.py
+
+# ------------------------
+# Environment
+# ------------------------
 .env
 .venv/
+env/
+venv/
+*.env
 
-# DB
-db.sqlite3
+# ------------------------
+# IDE / Editor
+# ------------------------
+.vscode/
+.idea/
+*.swp
 
+# ------------------------
 # OS
+# ------------------------
 .DS_Store
+Thumbs.db
+
+# ------------------------
+# Coverage / Test
+# ------------------------
+.coverage
+.tox/
+htmlcov/
+pytest_cache/
+
+# ------------------------
+# AWS / Secrets
+# ------------------------
+*.pem
+*.key

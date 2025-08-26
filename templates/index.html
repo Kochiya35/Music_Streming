@@ -1,0 +1,239 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Music Streaming • Demo Frontend</title>
+  <style>
+    :root{--bg:#0b0f14;--panel:#111826;--line:#1e2633;--muted:#99a9bd;--text:#e6edf3;--brand:#4fc3f7;--ok:#7cf29a;--bad:#ff7a7a}
+    *{box-sizing:border-box}
+    body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Apple Color Emoji,Segoe UI Emoji;background:var(--bg);color:var(--text)}
+    header{display:flex;gap:12px;align-items:center;justify-content:space-between;padding:14px 18px;border-bottom:1px solid var(--line)}
+    h1{font-size:18px;margin:0}
+    .brand{color:var(--brand)}
+    .wrap{max-width:1000px;margin:0 auto;padding:18px}
+    .row{display:flex;gap:16px;flex-wrap:wrap}
+    .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px}
+    .auth{flex:1 1 360px}
+    .player{flex:2 1 520px}
+    label{display:block;font-size:12px;color:var(--muted);margin:8px 0 6px}
+    input{width:100%;padding:10px 12px;border-radius:10px;border:1px solid var(--line);background:#0e141c;color:var(--text)}
+    button{padding:10px 14px;border-radius:10px;border:1px solid var(--line);background:#162234;color:var(--text);cursor:pointer}
+    button.primary{background:linear-gradient(180deg,#1b2a40,#132035)}
+    button[disabled]{opacity:.6;cursor:not-allowed}
+    .tabs{display:flex;gap:8px;margin-bottom:12px}
+    .tab{padding:8px 10px;border:1px solid var(--line);border-radius:999px;background:#0e1520;color:#cbd6e2;cursor:pointer}
+    .tab.active{background:#1a2231;color:#fff}
+    .me{font-size:13px;color:#cde;display:flex;gap:8px;align-items:center}
+    .me .dot{width:8px;height:8px;border-radius:999px;background:var(--ok);display:inline-block}
+    .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px}
+    .track{background:#0f1622;border:1px solid var(--line);border-radius:12px;padding:12px;display:grid;gap:8px}
+    .meta{display:flex;gap:10px;align-items:center}
+    .meta img{width:56px;height:56px;object-fit:cover;border-radius:8px;border:1px solid #243044;background:#121b2a}
+    .title{font-weight:700}
+    .artist{font-size:12px;color:var(--muted)}
+    .pill{font-size:11px;padding:2px 8px;border:1px solid #243044;border-radius:999px;color:#b9c8d8;margin-left:auto}
+    .muted{color:var(--muted)}
+    .ok{color:var(--ok)}
+    .err{color:var(--bad)}
+    .stack{display:grid;gap:10px}
+    .footer{padding:20px;text-align:center;color:#7f8ea3}
+  </style>
+</head>
+<body>
+<header>
+  <h1>🎵 <span class="brand">Music Streaming</span> Demo</h1>
+  <div class="me" id="meBox" hidden>
+    <span class="dot"></span>
+    <span id="meText">로그인됨</span>
+    <button id="btnLogout" title="로그아웃">Logout</button>
+  </div>
+</header>
+<div class="wrap">
+  <section class="card auth">
+    <div class="tabs">
+      <div class="tab active" id="tabLogin">로그인</div>
+      <div class="tab" id="tabSignup">회원가입</div>
+    </div>
+
+    <div id="loginBox" class="stack">
+      <label>API Base URL</label>
+      <input id="apiBase" value="http://127.0.0.1:8001/api" />
+      <div class="row" style="gap:10px">
+        <div style="flex:1 1 150px">
+          <label>아이디(Username)</label>
+          <input id="loginUser" placeholder="admin" />
+        </div>
+        <div style="flex:1 1 150px">
+          <label>비밀번호</label>
+          <input id="loginPass" type="password" placeholder="••••••••" />
+        </div>
+      </div>
+      <button class="primary" id="btnLogin">로그인</button>
+      <div class="muted" id="loginMsg"></div>
+    </div>
+
+    <div id="signupBox" class="stack" style="display:none">
+      <label>API Base URL</label>
+      <input id="apiBase2" value="http://127.0.0.1:8001/api" />
+      <div class="row" style="gap:10px">
+        <div style="flex:1 1 150px">
+          <label>아이디(Username)</label>
+          <input id="regUser" />
+        </div>
+        <div style="flex:1 1 150px">
+          <label>이메일</label>
+          <input id="regEmail" type="email" />
+        </div>
+      </div>
+      <div class="row" style="gap:10px">
+        <div style="flex:1 1 150px">
+          <label>비밀번호</label>
+          <input id="regPass" type="password" />
+        </div>
+        <div style="flex:1 1 150px">
+          <label>닉네임(선택)</label>
+          <input id="regNick" />
+        </div>
+      </div>
+      <button class="primary" id="btnSignup">회원가입</button>
+      <div class="muted" id="signupMsg"></div>
+    </div>
+  </section>
+
+  <section class="card player">
+    <h3 style="margin:0 0 10px">플레이어</h3>
+    <audio id="audio" controls style="width:100%"></audio>
+    <div class="muted" id="now">No track</div>
+  </section>
+
+  <section class="card" style="margin-top:16px">
+    <div style="display:flex;align-items:center;gap:10px;justify-content:space-between">
+      <h3 style="margin:0">트랙 목록</h3>
+      <div class="row" style="gap:8px;align-items:center">
+        <input id="searchInput" placeholder="검색 (제목/아티스트/장르)" style="max-width:240px" />
+        <button id="btnReload" class="primary">Reload</button>
+      </div>
+    </div>
+    <div id="tracks" class="grid" style="margin-top:12px"></div>
+    <div class="muted" id="emptyMsg" style="display:none">트랙이 없습니다.</div>
+  </section>
+
+  <div class="footer">Demo frontend • JWT는 로컬스토리지에 안전하게 저장되지 않으므로 실제 운영에서는 보안 정책을 강화하세요.</div>
+</div>
+
+<script>
+const $ = s => document.querySelector(s);
+const state = {
+  token: localStorage.getItem('accessToken') || '',
+  api(){ return ($('#apiBase')?.value || $('#apiBase2')?.value || 'http://127.0.0.1:8001/api').replace(/\/$/,''); }
+};
+
+function setToken(tok){ state.token = tok || ''; if(tok){ localStorage.setItem('accessToken', tok); } else { localStorage.removeItem('accessToken'); } updateMeUI(); }
+
+function updateMeUI(){
+  const box = $('#meBox');
+  if(state.token){ box.hidden = false; $('#loginMsg').textContent=''; } else { box.hidden = true; }
+}
+
+async function apiFetch(path, opts={}){
+  const headers = Object.assign({'Content-Type':'application/json'}, opts.headers||{});
+  if(state.token) headers['Authorization'] = `Bearer ${state.token}`;
+  const res = await fetch(`${state.api()}${path}`, Object.assign({}, opts, {headers}));
+  if(!res.ok){
+    let text = await res.text().catch(()=>''), msg=text; try{ msg = JSON.parse(text); }catch{}
+    throw new Error((msg && msg.detail) ? msg.detail : `HTTP ${res.status}`);
+  }
+  const ct = res.headers.get('content-type')||'';
+  return ct.includes('application/json') ? res.json() : res.text();
+}
+
+// Tabs
+$('#tabLogin').addEventListener('click', ()=>{ $('#tabLogin').classList.add('active'); $('#tabSignup').classList.remove('active'); $('#loginBox').style.display='grid'; $('#signupBox').style.display='none'; });
+$('#tabSignup').addEventListener('click', ()=>{ $('#tabSignup').classList.add('active'); $('#tabLogin').classList.remove('active'); $('#signupBox').style.display='grid'; $('#loginBox').style.display='none'; });
+
+// Auth
+$('#btnLogin').addEventListener('click', async ()=>{
+  $('#loginMsg').textContent = '로그인 중...';
+  try{
+    const data = await apiFetch('/auth/token/', { method:'POST', body: JSON.stringify({ username: $('#loginUser').value.trim(), password: $('#loginPass').value }) });
+    setToken(data.access);
+    $('#loginMsg').textContent = '로그인 성공!';
+    await loadTracks();
+  }catch(e){ $('#loginMsg').innerHTML = `<span class="err">${e.message}</span>`; }
+});
+
+$('#btnSignup').addEventListener('click', async ()=>{
+  $('#signupMsg').textContent = '가입 처리 중...';
+  try{
+    await apiFetch('/auth/register/', { method:'POST', body: JSON.stringify({
+      username: $('#regUser').value.trim(),
+      email: $('#regEmail').value.trim(),
+      password: $('#regPass').value,
+      nickname: $('#regNick').value.trim() || undefined
+    })});
+    $('#signupMsg').innerHTML = '가입 성공! 이메일 인증 링크는 개발 모드에서는 콘솔 출력입니다.';
+    // 곧바로 로그인 시도
+    try{
+      const data = await apiFetch('/auth/token/', { method:'POST', body: JSON.stringify({ username: $('#regUser').value.trim(), password: $('#regPass').value }) });
+      setToken(data.access); await loadTracks();
+    }catch{ /* 이메일 인증이 필요한 설정이면 토큰 발급이 실패할 수 있음 */ }
+  }catch(e){ $('#signupMsg').innerHTML = `<span class="err">${e.message}</span>`; }
+});
+
+$('#btnLogout').addEventListener('click', ()=>{ setToken(''); $('#now').textContent='No track'; $('#audio').src=''; });
+
+// Tracks
+$('#btnReload').addEventListener('click', ()=> loadTracks());
+$('#searchInput').addEventListener('input', ()=> loadTracks());
+
+async function loadTracks(){
+  try{
+    const q = $('#searchInput').value.trim();
+    const url = q ? `/tracks/?search=${encodeURIComponent(q)}` : '/tracks/';
+    const data = await apiFetch(url, { method:'GET', headers:{} });
+    const list = Array.isArray(data) ? data : (data.results||[]);
+    const root = $('#tracks'); root.innerHTML = '';
+    if(!list.length){ $('#emptyMsg').style.display='block'; return; } else { $('#emptyMsg').style.display='none'; }
+    list.forEach(t => {
+      const div = document.createElement('div');
+      div.className = 'track';
+      div.innerHTML = `
+        <div class="meta">
+          <img src="${t.thumbnail_url||''}" onerror="this.src='';this.style.background='#162236'" alt="thumb" />
+          <div>
+            <div class="title">${escapeHtml(t.title||'Untitled')}</div>
+            <div class="artist">${escapeHtml(t.artist||'')}</div>
+          </div>
+          <div class="pill">${escapeHtml(t.genre||'')}</div>
+        </div>
+        <div style="display:flex;gap:8px">
+          <button class="primary" data-id="${t.id}">Play</button>
+          <span class="muted">${t.is_published?'<span class="ok">Published</span>':'Unpublished'}</span>
+        </div>`;
+      div.querySelector('button').addEventListener('click', ()=> play(t));
+      root.appendChild(div);
+    });
+  }catch(e){ alert('트랙 로드 실패: '+e.message); }
+}
+
+async function play(track){
+  try{
+    if(!state.token){ alert('먼저 로그인 해주세요.'); return; }
+    // 여기를 GET -> POST로 수정
+    const data = await apiFetch(`/tracks/${track.id}/stream/`, { method:'POST' });
+    const audio = $('#audio');
+    audio.src = data.url; // presigned GET URL
+    await audio.play();
+    $('#now').textContent = `Now playing: ${track.title} – ${track.artist}`;
+  }catch(e){ alert('재생 실패: '+e.message); }
+}
+
+function escapeHtml(s){ return String(s).replace(/[&<>"']/g, m=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[m])); }
+
+// 초기 상태
+updateMeUI();
+loadTracks();
+</script>
+</body>
+</html>
